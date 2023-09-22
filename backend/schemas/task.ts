@@ -34,13 +34,6 @@ export default {
 
 /////////////////////
 //
-// Start here:
-// title str
-// desciption str
-// is_done bool
-//
-/////////////////////
-//
 // Add these later:
 // type >ref
 // tags >ref
