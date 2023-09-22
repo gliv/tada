@@ -4,9 +4,20 @@ import { ref } from 'vue'
 // uses GROQ to query content: https://www.sanity.io/docs/query-cheat-sheet
 
 export function useTasks() {
+  const task = ref()
   const tasks = ref()
 
-  const getTasks = async () => {
+  async function getTaskById(id) {
+    const query = `*[_id == "${id}" ]{
+      title,
+      slug,
+      description,
+      is_done
+    }`
+    task.value = await client.fetch(query)
+  }
+
+  async function getTasks() {
     tasks.value = await client.fetch(
       `*[_type == "task"]{
         _id,
@@ -18,7 +29,9 @@ export function useTasks() {
     )
   }
   return {
+    task,
     tasks,
+    getTaskById,
     getTasks
   }
 }
