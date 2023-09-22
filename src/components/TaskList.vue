@@ -15,10 +15,11 @@
 import { SanityBlocks } from 'sanity-blocks-vue-component'
 import Button from 'primevue/button'
 import { defineProps } from 'vue'
+import type { Task } from '@/types/tasks'
 
-const props = defineProps({
-  tasks: []
-})
+const props = defineProps<{
+  tasks: Task[]
+}>()
 </script>
 
 <style scoped></style>

@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <h1>Welcome to your Vue + Sanity Blog</h1>
+    <h1>Tasks</h1>
     <div class="posts">
       <TaskList :tasks="tasks" />
     </div>
