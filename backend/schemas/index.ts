@@ -2,13 +2,13 @@ import task from './task'
 
 export const schemaTypes = [task]
 
-// Note: all entities require a slug, as this is used to create the URL for the detail page
-
 ///////
 
 // What document types do we need?
 // task
 // user
 // team
+// labels (user can pick from set list, can only be one)
+// tags (user can create new ad-hoc, can be multiple)
 
 // https://www.sanity.io/docs/reference-type

@@ -14,17 +14,25 @@
         <template #body="slotProps">
           <Button
             icon="pi pi-pencil"
-            outlined
             rounded
+            text
             class="mr-2"
+            severity="info"
             @click="editTask(slotProps.data)"
           />
           <Button
             icon="pi pi-trash"
-            outlined
+            text
             rounded
             severity="danger"
             @click="confirmDeleteTask(slotProps.data)"
+          />
+          <Button
+            icon="pi pi-angle-right"
+            text
+            rounded
+            severity="info"
+            @click="goToTaskPage(slotProps.data)"
           />
         </template>
       </Column>
@@ -82,6 +90,7 @@
 
 <script setup lang="ts">
 import { type Ref, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useTasks } from '@/composables/useTasks'
 import { useToast } from 'primevue/usetoast'
 import Dialog from 'primevue/dialog'
@@ -92,7 +101,8 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import { Task } from '@/types/tasks'
 
-const { getTasks, tasks } = useTasks()
+const router = useRouter()
+const { getTasks, tasks, newTask } = useTasks()
 const toast = useToast()
 
 const task: Ref<Task> = ref()
@@ -118,7 +128,6 @@ const openNew = () => {
   const emptyTask = {
     _id: '',
     title: '',
-    slug: '',
     is_done: false
   }
   task.value = emptyTask
@@ -126,22 +135,26 @@ const openNew = () => {
   taskDialog.value = true
 }
 
-const saveTask = () => {
+const saveTask = async () => {
   submitted.value = true
 
-  /////////////////////////////////////////////////////////////////
-  //
-  // some logic to validate input, edit a product, extend useTasks
-  //
-  /////////////////////////////////////////////////////////////////
+  // TODO: validate input
+  newTask(task.value)
 
   taskDialog.value = false
   task.value = {} as Task
+  await getTasks() // does this attempted reload of the list actually work?
 }
 
 const editTask = (t: Task) => {
   task.value = { ...t }
   taskDialog.value = true
+
+  /////////////////////////////////////////////////////////////////
+  //
+  // TODO: improvement, edit inline, remove edit dialogue
+  //
+  /////////////////////////////////////////////////////////////////
 }
 
 const confirmDeleteTask = (t: Task) => {
@@ -160,6 +173,10 @@ const deleteTask = () => {
   deleteTaskDialog.value = false
   task.value = {} as Task
   toast.add({ severity: 'success', summary: 'Successful', detail: 'Task Deleted', life: 3000 })
+}
+
+const goToTaskPage = (t: Task) => {
+  router.push(`/tasks/${t._id}`)
 }
 </script>
 

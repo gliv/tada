@@ -1,4 +1,5 @@
 /* @import './base.css'; */
+@import 'primeicons/primeicons.css';
 
 #app {
   max-width: 1280px;
@@ -6,6 +7,10 @@
   padding: 2rem;
 
   font-weight: normal;
+}
+
+body {
+  font-family: var(--font-family);
 }
 
 /* a,

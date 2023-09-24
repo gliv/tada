@@ -11,7 +11,6 @@ export function useTasks() {
     const query = `*[_id == "${id}" ]{
       _id,
       title,
-      slug,
       description,
       is_done
     }`
@@ -23,17 +22,32 @@ export function useTasks() {
       `*[_type == "task"]{
         _id,
         title,
-        slug,
         description,
         is_done
       }[0...50]`
     )
   }
+
+  async function newTask(task) {
+    task._type = 'task'
+    task._id = null
+    console.log(task)
+    const result = client.create(task)
+    return result
+  }
+
+  // async function updateTaskTitle(_id, field, data) {
+  //   const result = client.patch(_id).set({ title })
+  //   return result
+  // }
+
   return {
     task,
     tasks,
     getTaskById,
-    getTasks
+    getTasks,
+    newTask
+    // updateTaskTitle
   }
 }
 
