@@ -9,6 +9,7 @@ export function useTasks() {
 
   async function getTaskById(id) {
     const query = `*[_id == "${id}" ]{
+      _id,
       title,
       slug,
       description,

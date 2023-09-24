@@ -1,43 +1,170 @@
 <template>
   <div class="taskList">
-    <DataTable
-      :value="tasks"
-      :reorderableColumns="true"
-      @rowReorder="onRowReorder"
-      tableStyle="min-width: 50rem"
-    >
-      <Column rowReorder headerStyle="width: 3rem" :reorderableColumn="false" />
+    <div class="actions">
+      <Button severity="success" @click="openNew"> + New Task </Button>
+    </div>
+    <DataTable :value="tasks" :reorderableColumns="true" tableStyle="min-width: 50rem">
       <Column
         v-for="col of columns"
         :field="col.field"
         :header="col.header"
         :key="col.field"
       ></Column>
+      <Column :exportable="false" style="min-width: 8rem">
+        <template #body="slotProps">
+          <Button
+            icon="pi pi-pencil"
+            outlined
+            rounded
+            class="mr-2"
+            @click="editTask(slotProps.data)"
+          />
+          <Button
+            icon="pi pi-trash"
+            outlined
+            rounded
+            severity="danger"
+            @click="confirmDeleteTask(slotProps.data)"
+          />
+        </template>
+      </Column>
     </DataTable>
+
+    <Dialog
+      v-model:visible="taskDialog"
+      :style="{ width: '450px' }"
+      header="Product Details"
+      :modal="true"
+      class="p-fluid"
+    >
+      <div class="field">
+        <label for="name">Title</label>
+        <InputText
+          id="title"
+          v-model.trim="task.title"
+          required="true"
+          autofocus
+          :class="{ 'p-invalid': submitted && !task.title }"
+        />
+        <small class="p-error" v-if="submitted && !task.title">Title is required.</small>
+      </div>
+
+      <div class="field">
+        <label for="is_done">Done?</label>
+        <InputSwitch v-model="task.is_done" />
+      </div>
+
+      <template #footer>
+        <Button label="Cancel" icon="pi pi-times" outlined @click="hideDialog" />
+        <Button label="Save" icon="pi pi-check" @click="saveTask" />
+      </template>
+    </Dialog>
+
+    <Dialog
+      v-model:visible="deleteTaskDialog"
+      :style="{ width: '450px' }"
+      header="Heads up!"
+      :modal="true"
+    >
+      <div class="confirmation-content">
+        <i class="pi pi-exclamation-triangle mr-3" style="font-size: 2rem" />
+        <span v-if="task._id"> <b>Are you sure you want to delete this task?</b> </span><br /><br />
+        {{ task.title }}<br />
+        <small>ID: {{ task._id }}</small>
+      </div>
+      <template #footer>
+        <Button label="Cancel" text @click="deleteTaskDialog = false" />
+        <Button label="Delete" severity="danger" text @click="deleteTask" />
+      </template>
+    </Dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { type Ref, onMounted, ref } from 'vue'
 import { useTasks } from '@/composables/useTasks'
+import { useToast } from 'primevue/usetoast'
+import Dialog from 'primevue/dialog'
+import Button from 'primevue/button'
+import InputText from 'primevue/inputtext'
+import InputSwitch from 'primevue/inputswitch'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
+import { Task } from '@/types/tasks'
 
 const { getTasks, tasks } = useTasks()
+const toast = useToast()
+
+const task: Ref<Task> = ref()
+const taskDialog = ref(false)
+const deleteTaskDialog = ref(false)
+const submitted = ref(false)
 
 const columns = ref([
   { field: 'title', header: 'Task' },
   { field: 'is_done', header: 'Done?' }
 ])
 
-const onRowReorder = (event) => {
-  console.log(event.value)
-  tasks.value = event.value
-}
-
 onMounted(async () => {
   await getTasks()
 })
+
+const hideDialog = () => {
+  taskDialog.value = false
+  submitted.value = false
+}
+
+const openNew = () => {
+  const emptyTask = {
+    _id: '',
+    title: '',
+    slug: '',
+    is_done: false
+  }
+  task.value = emptyTask
+  submitted.value = false
+  taskDialog.value = true
+}
+
+const saveTask = () => {
+  submitted.value = true
+
+  /////////////////////////////////////////////////////////////////
+  //
+  // some logic to validate input, edit a product, extend useTasks
+  //
+  /////////////////////////////////////////////////////////////////
+
+  taskDialog.value = false
+  task.value = {} as Task
+}
+
+const editTask = (t: Task) => {
+  task.value = { ...t }
+  taskDialog.value = true
+}
+
+const confirmDeleteTask = (t: Task) => {
+  task.value = t
+  deleteTaskDialog.value = true
+}
+
+const deleteTask = () => {
+  /////////////////////////////////////////////////////////////////
+  //
+  // add delete method to useTasks? call it and reload tasks.
+  //
+  /////////////////////////////////////////////////////////////////
+
+  tasks.value = tasks.value.filter((val) => val.id !== task.value._id)
+  deleteTaskDialog.value = false
+  task.value = {} as Task
+  toast.add({ severity: 'success', summary: 'Successful', detail: 'Task Deleted', life: 3000 })
+}
 </script>
 
-<style scoped></style>
+<style scoped>
+.actions {
+  padding-bottom: 1em;
+}
+</style>
