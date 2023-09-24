@@ -1,25 +1,43 @@
 <template>
   <div class="taskList">
-    <div v-for="task in props.tasks" class="task-item" :key="task._id">
-      <router-link :to="`/tasks/${task._id}`">
-        <h2>{{ task.title }}</h2>
-      </router-link>
-      <Button label="Tada" />
-      <SanityBlocks :blocks="task.description" />
-      <hr />
-    </div>
+    <DataTable
+      :value="tasks"
+      :reorderableColumns="true"
+      @rowReorder="onRowReorder"
+      tableStyle="min-width: 50rem"
+    >
+      <Column rowReorder headerStyle="width: 3rem" :reorderableColumn="false" />
+      <Column
+        v-for="col of columns"
+        :field="col.field"
+        :header="col.header"
+        :key="col.field"
+      ></Column>
+    </DataTable>
   </div>
 </template>
 
 <script setup lang="ts">
-import { SanityBlocks } from 'sanity-blocks-vue-component'
-import Button from 'primevue/button'
-import { defineProps } from 'vue'
-import type { Task } from '@/types/tasks'
+import { onMounted, ref } from 'vue'
+import { useTasks } from '@/composables/useTasks'
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
 
-const props = defineProps<{
-  tasks: Task[]
-}>()
+const { getTasks, tasks } = useTasks()
+
+const columns = ref([
+  { field: 'title', header: 'Task' },
+  { field: 'is_done', header: 'Done?' }
+])
+
+const onRowReorder = (event) => {
+  console.log(event.value)
+  tasks.value = event.value
+}
+
+onMounted(async () => {
+  await getTasks()
+})
 </script>
 
 <style scoped></style>
