@@ -31,23 +31,25 @@ export function useTasks() {
   async function newTask(task) {
     task._type = 'task'
     task._id = null
-    console.log(task)
     const result = client.create(task)
     return result
   }
 
-  // async function updateTaskTitle(_id, field, data) {
-  //   const result = client.patch(_id).set({ title })
-  //   return result
-  // }
+  async function updateTask(_id, field, newValue) {
+    const result = client
+      .patch(_id)
+      .set({ [field]: newValue })
+      .commit()
+    return result
+  }
 
   return {
     task,
     tasks,
     getTaskById,
     getTasks,
-    newTask
-    // updateTaskTitle
+    newTask,
+    updateTask
   }
 }
 

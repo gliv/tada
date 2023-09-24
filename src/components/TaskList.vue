@@ -3,13 +3,21 @@
     <div class="actions">
       <Button severity="success" @click="openNew"> + New Task </Button>
     </div>
-    <DataTable :value="tasks" :reorderableColumns="true" tableStyle="min-width: 50rem">
-      <Column
-        v-for="col of columns"
-        :field="col.field"
-        :header="col.header"
-        :key="col.field"
-      ></Column>
+    <DataTable
+      :value="tasks"
+      editMode="cell"
+      @cell-edit-complete="onCellEditComplete"
+      :reorderableColumns="true"
+      tableStyle="min-width: 50rem"
+    >
+      <Column v-for="col of columns" :field="col.field" :header="col.header" :key="col.field">
+        <template #body="{ data, field }">
+          {{ data[field] }}
+        </template>
+        <template #editor="{ data, field }">
+          <InputText v-model="data[field]" autofocus />
+        </template>
+      </Column>
       <Column :exportable="false" style="min-width: 8rem">
         <template #body="slotProps">
           <Button
@@ -102,7 +110,7 @@ import Column from 'primevue/column'
 import { Task } from '@/types/tasks'
 
 const router = useRouter()
-const { getTasks, tasks, newTask } = useTasks()
+const { getTasks, tasks, newTask, updateTask } = useTasks()
 const toast = useToast()
 
 const task: Ref<Task> = ref()
@@ -118,6 +126,18 @@ const columns = ref([
 onMounted(async () => {
   await getTasks()
 })
+
+const onCellEditComplete = (event) => {
+  let { data, newValue, field } = event
+
+  console.log('Data: ', data)
+  console.log('TaskId: ', data._id)
+  console.log('newValue: ', newValue)
+  console.log('Field: ', field)
+
+  updateTask(data._id, field, newValue) // save to db
+  data[field] = newValue // immediately set it on the table
+}
 
 const hideDialog = () => {
   taskDialog.value = false
@@ -135,7 +155,7 @@ const openNew = () => {
   taskDialog.value = true
 }
 
-const saveTask = async () => {
+const saveTask = () => {
   submitted.value = true
 
   // TODO: validate input
@@ -143,18 +163,6 @@ const saveTask = async () => {
 
   taskDialog.value = false
   task.value = {} as Task
-  await getTasks() // does this attempted reload of the list actually work?
-}
-
-const editTask = (t: Task) => {
-  task.value = { ...t }
-  taskDialog.value = true
-
-  /////////////////////////////////////////////////////////////////
-  //
-  // TODO: improvement, edit inline, remove edit dialogue
-  //
-  /////////////////////////////////////////////////////////////////
 }
 
 const confirmDeleteTask = (t: Task) => {
@@ -180,7 +188,11 @@ const goToTaskPage = (t: Task) => {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+::v-deep(.editable-cells-table td.p-cell-editing) {
+  padding-top: 0;
+  padding-bottom: 0;
+}
 .actions {
   padding-bottom: 1em;
 }
