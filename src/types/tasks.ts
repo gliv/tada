@@ -15,8 +15,6 @@ export type { Task }
 // type >ref
 // tags >ref
 // status >ref
-// parent >ref
-// children [>ref]
 // assignee >ref
 //
 /////////////////////

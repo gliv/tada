@@ -17,6 +17,12 @@
     "pages:deploy": "npm run build && wrangler pages deploy ./dist"
   },
   "dependencies": {
+    "@apollo/client": "^3.8.4",
+    "@nhost/apollo": "^5.2.18",
+    "@nhost/vue": "^1.13.36",
+    "@vue/apollo-composable": "^4.0.0-beta.11",
+    "graphql": "^16.8.1",
+    "graphql-tag": "^2.12.6",
     "pinia": "^2.0.36",
     "primeicons": "^6.0.1",
     "primevue": "^3.34.1",

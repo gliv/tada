@@ -1,15 +1,27 @@
 <template>
   <div class="task_list">
-    <Button severity="success" @click="addEmptyTask"> + New Task </Button>
-
+    <div class="actions">
+      <Button severity="success" @click="addEmptyTask"> + New Task </Button>
+    </div>
     <DataTable
+      v-model:filters="filters"
       :value="tasks"
       editMode="cell"
+      filterDisplay="menu"
+      dataKey="_id"
       @cell-edit-complete="onCellEditComplete"
       :reorderableColumns="true"
       tableStyle="width: 100%"
       :key="dataTableKey"
+      :globalFilterFields="['title']"
     >
+      <template #header>
+        <span class="p-input-icon-left">
+          <i class="pi pi-search" />
+          <InputText v-model="filters['global'].value" placeholder="Search Tasks" />
+        </span>
+      </template>
+      <template #empty> No tasks found. </template>
       <Column field="title" header="Task" sortable>
         <template #body="{ data, field }">
           {{ data[field] }}
@@ -74,6 +86,7 @@ import { useRouter } from 'vue-router'
 import { useTasks } from '@/composables/useTasks'
 
 import { useToast } from 'primevue/usetoast'
+import { FilterMatchMode } from 'primevue/api'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -90,6 +103,10 @@ const dataTableKey = ref(0)
 const forceRerender = () => {
   dataTableKey.value += 1
 }
+
+const filters = ref({
+  global: { value: null, matchMode: FilterMatchMode.CONTAINS }
+})
 
 const task: Ref<Task> = ref()
 const deleteTaskDialog = ref(false)
