@@ -1,9 +1,7 @@
 <template>
-  <div class="home">
+  <div class="tasks">
     <h1>Tasks</h1>
-    <div class="posts">
-      <TaskList />
-    </div>
+    <TaskList />
   </div>
 </template>
 

@@ -1,55 +1,86 @@
-import { sanityClient as client } from '@/sanity.js'
 import { ref } from 'vue'
 
-// uses GROQ to query content: https://www.sanity.io/docs/query-cheat-sheet
+function makeid(length) {
+  let result = ''
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  const charactersLength = characters.length
+  let counter = 0
+  while (counter < length) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength))
+    counter += 1
+  }
+  return result
+}
 
 export function useTasks() {
-  const task = ref()
+  const DBmock = [
+    {
+      _id: '1234-5678-8910-1112',
+      title: 'First task',
+      description: '',
+      is_done: false
+    },
+    {
+      _id: '5678-8910-1112-1234',
+      title: 'Second task',
+      description: '',
+      is_done: false
+    },
+    {
+      _id: '8910-1112-1234-5678',
+      title: 'Third task',
+      description: '',
+      is_done: false
+    }
+  ]
+
   const tasks = ref()
 
-  async function getTaskById(id) {
-    const query = `*[_id == "${id}" ]{
-      _id,
-      title,
-      description,
-      is_done
-    }`
-    task.value = await client.fetch(query)
+  async function getTaskById(_id) {
+    const res = DBmock.filter(function (item) {
+      return item._id === _id
+    })
+    return res
   }
 
-  async function getTasks() {
-    tasks.value = await client.fetch(
-      `*[_type == "task"]{
-        _id,
-        title,
-        description,
-        is_done
-      }[0...50]`
-    )
+  async function getTasks(): Promise<void> {
+    tasks.value = DBmock
   }
 
   async function newTask(task) {
-    task._type = 'task'
-    task._id = null
-    const result = client.create(task)
-    return result
+    const newId = makeid(19)
+    task._id = newId
+    const listOfTasks = DBmock
+    listOfTasks.push(task)
+    tasks.value = listOfTasks
   }
 
-  async function updateTask(_id, field, newValue) {
-    const result = client
-      .patch(_id)
-      .set({ [field]: newValue })
-      .commit()
-    return result
+  async function updateTaskField(_id, field, newValue) {
+    const listOfTasks = DBmock
+    const task = listOfTasks.filter(function (item) {
+      return item._id == _id
+    })
+    const index = listOfTasks.map((item) => item._id).indexOf(_id)
+    const newTaskValue = task
+    newTaskValue[field] = newValue
+    DBmock[index] = newTaskValue
+    tasks.value = listOfTasks
+  }
+
+  async function deleteTaskById(_id) {
+    const listOfTasks = DBmock
+    const index = listOfTasks.map((item) => item._id).indexOf(_id)
+    listOfTasks.splice(index, 1)
+    tasks.value = listOfTasks
   }
 
   return {
-    task,
     tasks,
     getTaskById,
     getTasks,
     newTask,
-    updateTask
+    updateTaskField,
+    deleteTaskById
   }
 }
 

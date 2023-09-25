@@ -1,7 +1,7 @@
 <template>
-  <div class="taskList">
+  <div class="task_list">
     <div class="actions">
-      <Button severity="success" @click="openNew"> + New Task </Button>
+      <Button severity="success" @click="addEmptyTask"> + New Task </Button>
     </div>
     <DataTable
       :value="tasks"
@@ -9,8 +9,9 @@
       @cell-edit-complete="onCellEditComplete"
       :reorderableColumns="true"
       tableStyle="min-width: 50rem"
+      :key="dataTableKey"
     >
-      <Column v-for="col of columns" :field="col.field" :header="col.header" :key="col.field">
+      <Column field="title" header="Task" sortable>
         <template #body="{ data, field }">
           {{ data[field] }}
         </template>
@@ -18,16 +19,13 @@
           <InputText v-model="data[field]" autofocus />
         </template>
       </Column>
+      <Column field="is_done" header="Done?" sortable>
+        <template #body="{ data, field }">
+          <InputSwitch v-model="data[field]" />
+        </template>
+      </Column>
       <Column :exportable="false" style="min-width: 8rem">
         <template #body="slotProps">
-          <Button
-            icon="pi pi-pencil"
-            rounded
-            text
-            class="mr-2"
-            severity="info"
-            @click="editTask(slotProps.data)"
-          />
           <Button
             icon="pi pi-trash"
             text
@@ -36,45 +34,15 @@
             @click="confirmDeleteTask(slotProps.data)"
           />
           <Button
-            icon="pi pi-angle-right"
+            icon="pi pi-eye"
             text
             rounded
             severity="info"
-            @click="goToTaskPage(slotProps.data)"
+            @click="goToTaskDetailPage(slotProps.data)"
           />
         </template>
       </Column>
     </DataTable>
-
-    <Dialog
-      v-model:visible="taskDialog"
-      :style="{ width: '450px' }"
-      header="Product Details"
-      :modal="true"
-      class="p-fluid"
-    >
-      <div class="field">
-        <label for="name">Title</label>
-        <InputText
-          id="title"
-          v-model.trim="task.title"
-          required="true"
-          autofocus
-          :class="{ 'p-invalid': submitted && !task.title }"
-        />
-        <small class="p-error" v-if="submitted && !task.title">Title is required.</small>
-      </div>
-
-      <div class="field">
-        <label for="is_done">Done?</label>
-        <InputSwitch v-model="task.is_done" />
-      </div>
-
-      <template #footer>
-        <Button label="Cancel" icon="pi pi-times" outlined @click="hideDialog" />
-        <Button label="Save" icon="pi pi-check" @click="saveTask" />
-      </template>
-    </Dialog>
 
     <Dialog
       v-model:visible="deleteTaskDialog"
@@ -110,59 +78,34 @@ import Column from 'primevue/column'
 import { Task } from '@/types/tasks'
 
 const router = useRouter()
-const { getTasks, tasks, newTask, updateTask } = useTasks()
+const { tasks, getTasks, newTask, updateTaskField, deleteTaskById } = useTasks()
 const toast = useToast()
 
-const task: Ref<Task> = ref()
-const taskDialog = ref(false)
-const deleteTaskDialog = ref(false)
-const submitted = ref(false)
+const dataTableKey = ref(0)
+const forceRerender = () => {
+  dataTableKey.value += 1
+}
 
-const columns = ref([
-  { field: 'title', header: 'Task' },
-  { field: 'is_done', header: 'Done?' }
-])
+const task: Ref<Task> = ref()
+const deleteTaskDialog = ref(false)
 
 onMounted(async () => {
   await getTasks()
 })
 
-const onCellEditComplete = (event) => {
+const onCellEditComplete = async (event) => {
   let { data, newValue, field } = event
-
-  console.log('Data: ', data)
-  console.log('TaskId: ', data._id)
-  console.log('newValue: ', newValue)
-  console.log('Field: ', field)
-
-  updateTask(data._id, field, newValue) // save to db
-  data[field] = newValue // immediately set it on the table
+  await updateTaskField(data._id, field, newValue)
 }
 
-const hideDialog = () => {
-  taskDialog.value = false
-  submitted.value = false
-}
-
-const openNew = () => {
+const addEmptyTask = async () => {
   const emptyTask = {
-    _id: '',
+    _id: null,
     title: '',
     is_done: false
   }
-  task.value = emptyTask
-  submitted.value = false
-  taskDialog.value = true
-}
-
-const saveTask = () => {
-  submitted.value = true
-
-  // TODO: validate input
-  newTask(task.value)
-
-  taskDialog.value = false
-  task.value = {} as Task
+  await newTask(emptyTask)
+  forceRerender()
 }
 
 const confirmDeleteTask = (t: Task) => {
@@ -170,20 +113,14 @@ const confirmDeleteTask = (t: Task) => {
   deleteTaskDialog.value = true
 }
 
-const deleteTask = () => {
-  /////////////////////////////////////////////////////////////////
-  //
-  // add delete method to useTasks? call it and reload tasks.
-  //
-  /////////////////////////////////////////////////////////////////
-
-  tasks.value = tasks.value.filter((val) => val.id !== task.value._id)
+const deleteTask = async () => {
   deleteTaskDialog.value = false
-  task.value = {} as Task
+  deleteTaskById(task.value._id)
   toast.add({ severity: 'success', summary: 'Successful', detail: 'Task Deleted', life: 3000 })
+  forceRerender()
 }
 
-const goToTaskPage = (t: Task) => {
+const goToTaskDetailPage = (t: Task) => {
   router.push(`/tasks/${t._id}`)
 }
 </script>
