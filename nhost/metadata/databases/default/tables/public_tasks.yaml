@@ -1,3 +1,14 @@
 table:
   name: tasks
   schema: public
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - title
+        - description
+        - is_done
+      filter:
+        _id:
+          _eq: X-Hasura-User-Id
+      allow_aggregations: true
