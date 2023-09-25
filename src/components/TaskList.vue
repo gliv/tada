@@ -1,14 +1,13 @@
 <template>
   <div class="task_list">
-    <div class="actions">
-      <Button severity="success" @click="addEmptyTask"> + New Task </Button>
-    </div>
+    <Button severity="success" @click="addEmptyTask"> + New Task </Button>
+
     <DataTable
       :value="tasks"
       editMode="cell"
       @cell-edit-complete="onCellEditComplete"
       :reorderableColumns="true"
-      tableStyle="min-width: 50rem"
+      tableStyle="width: 100%"
       :key="dataTableKey"
     >
       <Column field="title" header="Task" sortable>
@@ -24,7 +23,12 @@
           <InputSwitch v-model="data[field]" />
         </template>
       </Column>
-      <Column :exportable="false" style="min-width: 8rem">
+      <Column field="_id" header="ID" sortable>
+        <template #body="{ data, field }">
+          {{ data[field] }}
+        </template>
+      </Column>
+      <Column :exportable="false" style="align: right">
         <template #body="slotProps">
           <Button
             icon="pi pi-trash"
@@ -68,6 +72,7 @@
 import { type Ref, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTasks } from '@/composables/useTasks'
+
 import { useToast } from 'primevue/usetoast'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
@@ -100,12 +105,12 @@ const onCellEditComplete = async (event) => {
 
 const addEmptyTask = async () => {
   const emptyTask = {
-    _id: null,
     title: '',
     is_done: false
   }
   await newTask(emptyTask)
   forceRerender()
+  console.log(tasks.value)
 }
 
 const confirmDeleteTask = (t: Task) => {

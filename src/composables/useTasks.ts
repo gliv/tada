@@ -34,10 +34,10 @@ export function useTasks() {
     }
   ]
 
-  const tasks = ref()
+  const tasks = ref(DBmock)
 
   async function getTaskById(_id) {
-    const res = DBmock.filter(function (item) {
+    const res = tasks.value.filter(function (item) {
       return item._id === _id
     })
     return res
@@ -63,6 +63,10 @@ export function useTasks() {
     const index = listOfTasks.map((item) => item._id).indexOf(_id)
     const newTaskValue = task
     newTaskValue[field] = newValue
+
+    const newId = makeid(19)
+    task._id = newId
+
     DBmock[index] = newTaskValue
     tasks.value = listOfTasks
   }
@@ -83,13 +87,3 @@ export function useTasks() {
     deleteTaskById
   }
 }
-
-// export async function createPost(post) {
-//   const result = client.create(post)
-//   return result
-// }
-
-// export async function updateDocumentTitle(_id, title) {
-//   const result = client.patch(_id).set({ title })
-//   return result
-// }
